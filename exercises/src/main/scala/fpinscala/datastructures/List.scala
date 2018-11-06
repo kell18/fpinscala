@@ -1,5 +1,7 @@
 package fpinscala.datastructures
 
+import scala.annotation.tailrec
+
 sealed trait List[+A] // `List` data type, parameterized on a type, `A`
 case object Nil extends List[Nothing] // A `List` data constructor representing the empty list
 /* Another data constructor, representing nonempty lists. Note that `tail` is another `List[A]`,
@@ -50,19 +52,42 @@ object List { // `List` companion object. Contains functions for creating and wo
     foldRight(ns, 1.0)(_ * _) // `_ * _` is more concise notation for `(x,y) => x * y`; see sidebar
 
 
-  def tail[A](l: List[A]): List[A] = ???
+  def tail[A](l: List[A]): List[A] = l match {
+    case Cons(_, lTail) => lTail
+    case Nil => sys.error("Cannot take tail of empty list.")
+  }
 
-  def setHead[A](l: List[A], h: A): List[A] = ???
+  def setHead[A](l: List[A], h: A): List[A] = l match {
+    case Cons(_, tail) => Cons(h, tail)
+    case Nil => sys.error(s"Trying to set head for the empty list.")
+  }
 
-  def drop[A](l: List[A], n: Int): List[A] = ???
+  @tailrec
+  def drop[A](l: List[A], n: Int): List[A] = l match {
+    case Cons(_, tail) if n > 0 => drop(tail, n-1)
+    case Cons(_, _)             => l
+    case Nil => sys.error(s"Cannot drop $n elements from the empty list.")
+  }
 
-  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = ???
+  @tailrec
+  def dropWhile[A](l: List[A], f: A => Boolean): List[A] = l match {
+    case Cons(h, tail) if f(h) => dropWhile(tail, f)
+    case Cons(_, _)            => l
+    case Nil => l
+  }
 
-  def init[A](l: List[A]): List[A] = ???
+  def init[A](l: List[A]): List[A] = l
 
-  def length[A](l: List[A]): Int = ???
+  def length[A](l: List[A]): Int = foldLeft(l, 0) { case (count, _) => count + 1 }
 
-  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
+  @tailrec
+  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = l match {
+    case Cons(h, tail) => foldLeft(tail, f(z, h))(f)
+    case Nil => z
+  }
 
-  def map[A,B](l: List[A])(f: A => B): List[B] = ???
+  def map[A,B](l: List[A])(f: A => B): List[B] = l match {
+    case Cons(h, tail) => Cons(f(h), map(tail)(f))
+    case Nil => Nil
+  }
 }
