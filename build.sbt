@@ -1,5 +1,11 @@
+
 val commonSettings = Seq(
-  scalaVersion := "2.12.1"
+  scalaVersion := "2.12.7",
+  scalacOptions ++= Seq(
+    "-Ypartial-unification", // allow the compiler to unify type constructors of different arities
+    "-deprecation",          // warn about use of deprecated APIs
+    "-feature"               // warn about feature warnings 
+  )
 )
 
 lazy val root = (project in file("."))
