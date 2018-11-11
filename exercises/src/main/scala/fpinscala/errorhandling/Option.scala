@@ -38,11 +38,25 @@ object Option {
   def mean(xs: Seq[Double]): Option[Double] =
     if (xs.isEmpty) None
     else Some(xs.sum / xs.length)
-  def variance(xs: Seq[Double]): Option[Double] = ???
+  
+  def variance(xs: Seq[Double]): Option[Double] = mean(xs) flatMap { m =>
+    mean(xs map(x => Math.pow(x - m, 2)))
+  }
 
-  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = ???
+  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = for {
+    arg1 <- a
+    arg2 <- b
+  } yield f(arg1, arg2)
 
-  def sequence[A](a: List[Option[A]]): Option[List[A]] = ???
+  def sequence[A](a: List[Option[A]]): Option[List[A]] = traverse(a)(identity)
 
-  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = ???
+  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = {
+    for {
+      head <- a.headOption
+      first <- f(head)
+    } yield a.tail.foldRight[Option[List[B]]](Some(List(first))) {
+      case (aI, Some(acc)) => f(aI) map { bI => bI :: acc }
+      case _ => None
+    }
+  }
 }
