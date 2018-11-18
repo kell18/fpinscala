@@ -50,13 +50,9 @@ object Option {
 
   def sequence[A](a: List[Option[A]]): Option[List[A]] = traverse(a)(identity)
 
-  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = {
-    for {
-      head <- a.headOption
-      first <- f(head)
-    } yield a.tail.foldRight[Option[List[B]]](Some(List(first))) {
-      case (aI, Some(acc)) => f(aI) map { bI => bI :: acc }
-      case _ => None
+  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = 
+    a.foldRight[Option[List[B]]](Some(List.empty)) {
+      case (i, Some(acc)) => f(i).map(_ :: acc)
+      case (_, None) => None
     }
-  }
 }
