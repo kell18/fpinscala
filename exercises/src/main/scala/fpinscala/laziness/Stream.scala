@@ -17,23 +17,64 @@ trait Stream[+A] {
     case Empty => None
     case Cons(h, t) => if (f(h())) Some(h()) else t().find(f)
   }
-  def take(n: Int): Stream[A] = ???
+  def take(n: Int): Stream[A]
 
-  def drop(n: Int): Stream[A] = ???
+  def drop(n: Int): Stream[A]
 
-  def takeWhile(p: A => Boolean): Stream[A] = ???
+  def takeWhile(p: A => Boolean): Stream[A]
 
-  def forAll(p: A => Boolean): Boolean = ???
+  def forAll(p: A => Boolean): Boolean
 
-  def headOption: Option[A] = ???
+  def headOption: Option[A]
+  
+  def toList: List[A]
 
   // 5.7 map, filter, append, flatmap using foldRight. Part of the exercise is
   // writing your own function signatures.
 
   def startsWith[B](s: Stream[B]): Boolean = ???
 }
-case object Empty extends Stream[Nothing]
-case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
+
+case object Empty extends Stream[Nothing] {
+  override def take(n: Int): Stream[Nothing] = this
+
+  override def drop(n: Int): Stream[Nothing] = this
+
+  override def takeWhile(p: Nothing => Boolean): Stream[Nothing] = this
+
+  override def forAll(p: Nothing => Boolean): Boolean = false
+
+  override def headOption: Option[Nothing] = None
+
+  override def toList = List.empty
+}
+
+case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A] {
+  override def take(n: Int) = if (n > 0) {
+    lazy val newTail = t().take(n-1)
+    Cons(h, () => newTail)
+  } else if (n == 0) {
+    Empty
+  } else {
+    throw new RuntimeException(s"Cannot rake negative number of elements: $n")
+  }
+
+  override def drop(n: Int) = if (n > 0) t().drop(n - 1) else 
+    if (n == 0) this else 
+    throw new RuntimeException(s"Cannot drop negative number of elements: $n") 
+
+  override def takeWhile(p: A => Boolean) = if (p(h())) {
+    lazy val newTail = t().takeWhile(p)
+    Cons(h, () => newTail)
+  } else Empty
+
+  // .. functions above are checked. Next - #5.4 and some of paragraph 5.3 (corecursion)
+  override def forAll(p: A => Boolean) = ???
+
+  override def headOption = ???
+
+  override def toList = h() :: t().toList
+}
 
 object Stream {
   def cons[A](hd: => A, tl: => Stream[A]): Stream[A] = {
