@@ -29,10 +29,12 @@ trait Stream[+A] {
 
   def headOption: Option[A]
 
-  def toList: List[A]
+  def headOption_foldRight: Option[A] =
+    foldRight[Option[A]](None) {
+      case (a, _) => Some(a)
+    }
 
-  // 5.7 map, filter, append, flatmap using foldRight. Part of the exercise is
-  // writing your own function signatures.
+  def toList: List[A]
 
   def startsWith[B](s: Stream[B]): Boolean = ???
 }
