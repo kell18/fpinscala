@@ -123,4 +123,33 @@ object Stream {
   def fibs_unfold(): Stream[Long] = {
     unfold(0L -> 1L) { case (a, b) => Some((a, b -> (a + b))) }
   }
+
+  // .. move to the Stream itelf
+  def map_unfold[A, B](str: Stream[A])(f: A => B): Stream[B] = unfold(str) {
+    case Cons(head, tail) => Some(f(head()), tail())
+    case _ => None
+  }
+
+  def take_unfold[A](str: Stream[A])(n: Int): Stream[A] = unfold(str -> n) {
+    case (Cons(head, tail), remains) if remains > 0 => Some(head(), (tail(), remains-1))
+    case _ => None
+  }
+
+  def takeWhile_unfold[A](str: Stream[A])(p: A => Boolean): Stream[A] = unfold(str) {
+    case Cons(head, tail) if p(head()) => Some(head(), tail())
+    case _ => None
+  }
+
+  def zipWith_unfold[A, B](strA: Stream[A])(strB: Stream[B]): Stream[(A, B)] = unfold(strA -> strB) {
+    case (Cons(headA, tailA), Cons(headB, tailB)) => Some(headA() -> headB(), tailA() -> tailB())
+    case _ => None
+  }
+
+  def zipAll_unfold[A, B](strA: Stream[A])(strB: Stream[B]): Stream[(Option[A], Option[B])] = unfold(strA -> strB) {
+    case (Empty, Empty) => None
+    case (a, b) => Some(
+      a.headOption -> b.headOption,
+      a.drop(1) -> b.drop(1)
+    )
+  }
 }
