@@ -4,7 +4,11 @@ val commonSettings = Seq(
   scalacOptions ++= Seq(
     "-Ypartial-unification", // allow the compiler to unify type constructors of different arities
     "-deprecation",          // warn about use of deprecated APIs
-    "-feature"               // warn about feature warnings 
+    "-feature"               // warn about feature warnings
+  ),
+  libraryDependencies ++= Seq(
+    "org.typelevel" %% "cats-core" % "1.6.0",
+    "org.typelevel" %% "cats-effect" % "1.2.0"
   )
 )
 
