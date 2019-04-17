@@ -140,16 +140,21 @@ object Stream {
     case _ => None
   }
 
+
   def zipWith_unfold[A, B](strA: Stream[A])(strB: Stream[B]): Stream[(A, B)] = unfold(strA -> strB) {
     case (Cons(headA, tailA), Cons(headB, tailB)) => Some(headA() -> headB(), tailA() -> tailB())
     case _ => None
   }
 
-  def zipAll_unfold[A, B](strA: Stream[A])(strB: Stream[B]): Stream[(Option[A], Option[B])] = unfold(strA -> strB) {
-    case (Empty, Empty) => None
-    case (a, b) => Some(
-      a.headOption -> b.headOption,
-      a.drop(1) -> b.drop(1)
-    )
-  }
+  def zipAll_unfold[A, B](strA: Stream[A])(strB: Stream[B]): Stream[(Option[A],Option[B])] = ???
+
+  def zip_unfold[A, B, C](f: (Option[A], Option[B]) => C)(strA: Stream[A])(strB: Stream[B]): Stream[C] =
+    unfold(strA -> strB) {
+      case (Empty, Empty) => None
+      case (a, b) =>
+        Some(
+          f(a.headOption, b.headOption),
+          a.drop(1) -> b.drop(1)
+        )
+    }
 }
