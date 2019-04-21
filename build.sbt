@@ -5,10 +5,6 @@ val commonSettings = Seq(
     "-Ypartial-unification", // allow the compiler to unify type constructors of different arities
     "-deprecation",          // warn about use of deprecated APIs
     "-feature"               // warn about feature warnings
-  ),
-  libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-core" % "1.6.0",
-    "org.typelevel" %% "cats-effect" % "1.2.0"
   )
 )
 
@@ -22,7 +18,11 @@ lazy val root = (project in file("."))
 lazy val exercises = (project in file("exercises"))
   .settings(commonSettings)
   .settings(
-    name := "exercises"
+    name := "exercises",
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-core" % "1.6.0",
+      "org.typelevel" %% "cats-effect" % "1.2.0"
+    )
   )
 
 lazy val answers = (project in file("answers"))

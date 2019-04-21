@@ -36,6 +36,22 @@ trait Stream[+A] {
 
   def toList: List[A]
 
+
+  def tails: Stream[Stream[A]] = unfold(this) {
+    case Empty => None
+    case nonEmptyStr => Some((nonEmptyStr, nonEmptyStr.drop(1)))
+  }.append(Stream(empty))
+
+  // stack-unsafe. Stack-safe could be probably done with recursion.
+  def append[AA >: A](s: Stream[AA]): Stream[AA] = unfold(this -> s) {
+    case (Empty, Cons(h, t)) => Some(h() -> (Empty, t()))
+    case (Cons(h, t), rest) => Some(h() -> (t(), rest))
+    case (Empty, Empty) => None
+  }
+
+  def hasSubsequence[AA >: A](subSeq: Stream[AA]): Boolean = tails.exists(_.startsWith(subSeq))
+
+
   def startsWith[B](s: Stream[B]): Boolean = ???
 }
 

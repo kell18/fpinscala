@@ -24,8 +24,8 @@ case class Location(input: String, offset: Int = 0) {
   def advanceBy(n: Int) = copy(offset = offset+n)
 
   /* Returns the line corresponding to this location */
-  def currentLine: String = 
-    if (input.length > 1) input.lines.skip(line-1).toString
+  def currentLine: String =
+    if (input.length > 1) ??? // input.lines.skip(line-1).toString
     else ""
 }
 
