@@ -16,12 +16,12 @@ object Cats extends App {
 
   def connectDb: IO[Unit] = ???
 
-  connectDb.bracketCase { _ =>
+  /*connectDb.bracketCase { _ =>
     IO.raiseError(ConnectionLost)
   } {
     case (r, Error(InvalidSql))     =>
 
     case (r, Error(ConnectionLost)) =>
-  }
+  }*/
 
 }

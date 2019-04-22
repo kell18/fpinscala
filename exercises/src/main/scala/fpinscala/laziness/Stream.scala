@@ -1,6 +1,9 @@
 package fpinscala.laziness
 
 import Stream._
+import cats.implicits._
+import cats._
+
 trait Stream[+A] {
 
   def foldRight[B](z: => B)(f: (A, => B) => B): B = // The arrow `=>` in front of the argument type `B` means that the function `f` takes its second argument by name and may choose not to evaluate it.
@@ -34,6 +37,30 @@ trait Stream[+A] {
       case (a, _) => Some(a)
     }
 
+
+  // via unfold
+  def map[B](f: A => B): Stream[B] = unfold(this) {
+    case Cons(head, tail) => Some(f(head()), tail())
+    case _ => None
+  }
+
+  def take_unfold(n: Int): Stream[A] = unfold(this -> n) {
+    case (Cons(head, tail), remains) if remains > 0 => Some(head(), (tail(), remains-1))
+    case _ => None
+  }
+
+  def takeWhile_unfold(p: A => Boolean): Stream[A] = unfold(this) {
+    case Cons(head, tail) if p(head()) => Some(head(), tail())
+    case _ => None
+  }
+
+
+  def zipWith_unfold[B](strB: Stream[B]): Stream[(A, B)] = unfold(this -> strB) {
+    case (Cons(headA, tailA), Cons(headB, tailB)) => Some(headA() -> headB(), tailA() -> tailB())
+    case _ => None
+  }
+
+
   def toList: List[A]
 
 
@@ -46,13 +73,42 @@ trait Stream[+A] {
   def append[AA >: A](s: Stream[AA]): Stream[AA] = unfold(this -> s) {
     case (Empty, Cons(h, t)) => Some(h() -> (Empty, t()))
     case (Cons(h, t), rest) => Some(h() -> (t(), rest))
-    case (Empty, Empty) => None
+    case _ => None
   }
 
   def hasSubsequence[AA >: A](subSeq: Stream[AA]): Boolean = tails.exists(_.startsWith(subSeq))
 
+  def zip2f[B, C](s: Stream[B])(f: (Option[A], Option[B]) => C): Stream[C] = ???
 
-  def startsWith[B](s: Stream[B]): Boolean = ???
+
+  def startsWith[B](s: Stream[B]): Boolean = this.zip2f(s) {
+    case (a, b) => true // todo mapN // .. from work-mac
+  }.forAll(_ == true)
+
+  def tailsViaScanRight: Stream[Stream[A]] = this.scanRight(this) {
+    case (Cons(_, t), _) => t()
+    case (_, _) => Empty
+  }
+
+  def scanRight[S](s: S)(f: (S, A) => S): Stream[S] = this match {
+    case Cons(h, t) => {
+      val newS = f(s, h())
+      val scannedRight = t().scanRight(newS)(f)
+      cons(newS, scannedRight)
+    }
+    case Empty => Empty
+  }
+
+  def scanRightViaUnfold[S](s: S)(f: (S, A) => S): Stream[S] = ??? // some kind of bullshit to do it... :D
+
+  def scanRightViaFoldRight_ORIGINAL[S](s: S)(f: (A, => S) => S): Stream[S] = tails.map(_.foldRight(s)(f))
+
+  def scanRightViaFoldRight[S](s: S)(f: (A, S) => S): Stream[S] = this.foldRight(s -> empty[S]) {
+    case (a, (newS, interimResult)) => {
+      val s1 = f(a, newS)
+      newS -> cons(s1, interimResult)
+    }
+  }._2
 }
 
 case object Empty extends Stream[Nothing] {
@@ -141,26 +197,6 @@ object Stream {
   }
 
   // .. move to the Stream itelf
-  def map_unfold[A, B](str: Stream[A])(f: A => B): Stream[B] = unfold(str) {
-    case Cons(head, tail) => Some(f(head()), tail())
-    case _ => None
-  }
-
-  def take_unfold[A](str: Stream[A])(n: Int): Stream[A] = unfold(str -> n) {
-    case (Cons(head, tail), remains) if remains > 0 => Some(head(), (tail(), remains-1))
-    case _ => None
-  }
-
-  def takeWhile_unfold[A](str: Stream[A])(p: A => Boolean): Stream[A] = unfold(str) {
-    case Cons(head, tail) if p(head()) => Some(head(), tail())
-    case _ => None
-  }
-
-
-  def zipWith_unfold[A, B](strA: Stream[A])(strB: Stream[B]): Stream[(A, B)] = unfold(strA -> strB) {
-    case (Cons(headA, tailA), Cons(headB, tailB)) => Some(headA() -> headB(), tailA() -> tailB())
-    case _ => None
-  }
 
   def zipAll_unfold[A, B](strA: Stream[A])(strB: Stream[B]): Stream[(Option[A],Option[B])] = ???
 
