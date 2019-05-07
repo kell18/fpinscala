@@ -1,8 +1,6 @@
 package fpinscala.laziness
 
 import Stream._
-import cats.implicits._
-import cats._
 
 trait Stream[+A] {
 
