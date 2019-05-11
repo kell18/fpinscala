@@ -149,7 +149,7 @@ object RNG {
   }
 }
 
-case class State[S,+A](run: S => (A, S)) {
+case class State[S, +A](run: S => (A, S)) {
   def map[B](f: A => B): State[S, B] =
     State { s =>
       val (a, newS) = run(s)
@@ -178,5 +178,21 @@ case class Machine(locked: Boolean, candies: Int, coins: Int)
 
 object State {
   type Rand[A] = State[RNG, A]
-  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = ???
+
+  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = State(inMachine => {
+    val outMachine = inputs.foldLeft(inMachine) {
+      case (m, Coin) if m.candies > 0 && m.locked => m.copy(locked = false, coins = m.coins + 1)
+      case (m, Turn) if !m.locked                 => m.copy(candies = m.candies - 1, locked = true)
+      case (m, _)                                 => m
+    }
+    (outMachine.coins -> outMachine.candies, outMachine)
+  })
+}
+
+object MachineCheck extends App {
+  // co = 2, ca = -2
+  val input = Coin :: Turn :: Turn :: Turn :: Coin :: Coin :: Turn :: Turn :: Nil
+  val m = Machine(true, 10, 0)
+  val result = State.simulateMachine(input).run(m)
+  println(result)
 }
