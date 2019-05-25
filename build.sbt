@@ -15,13 +15,22 @@ lazy val root = (project in file("."))
     name := "fpinscala"
   )
 
+val monocleVersion = "1.5.0" // 1.5.0-cats based on cats 1.0.x
+resolvers += Resolver.bintrayRepo("dmbl","dinogroup")
+
+
 lazy val exercises = (project in file("exercises"))
   .settings(commonSettings)
   .settings(
     name := "exercises",
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % "1.6.0",
-      "org.typelevel" %% "cats-effect" % "1.2.0"
+      "org.typelevel" %% "cats-effect" % "1.2.0",
+
+
+      "com.github.julien-truffaut" %%  "monocle-core"  % monocleVersion,
+      "com.github.julien-truffaut" %%  "monocle-macro" % monocleVersion,
+      "com.github.julien-truffaut" %%  "monocle-law"   % monocleVersion % "test"
     )
   )
 
