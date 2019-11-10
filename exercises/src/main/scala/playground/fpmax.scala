@@ -6,6 +6,7 @@ object Playground {
 
 
 import scala.io.StdIn.readLine
+import scala.language.higherKinds
 import scala.util.Try
 
 object App0 {
