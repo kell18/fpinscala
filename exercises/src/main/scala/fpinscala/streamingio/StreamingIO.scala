@@ -19,9 +19,9 @@ object ImperativeAndLazyIO {
   import java.io._
 
   def linesGt40k(filename: String): IO[Boolean] = IO {
-    // There are a number of convenience functions in scala.io.Source
+    // There are a number of convenience functions in scala.scala.io.Source
     // for reading from external sources such as files.
-    val src = io.Source.fromFile(filename)
+    val src = scala.io.Source.fromFile(filename)
     try {
       var count = 0
       // Obtain a stateful iterator from the Source
@@ -70,7 +70,7 @@ object ImperativeAndLazyIO {
                              */
 
   def lines(filename: String): IO[Stream[String]] = IO {
-    val src = io.Source.fromFile(filename)
+    val src = scala.io.Source.fromFile(filename)
     src.getLines.toStream append { src.close; Stream.empty }
   }
                             /*
@@ -380,7 +380,7 @@ object SimpleStreamTransducers {
             go(ss, next, acc)
           case Emit(h, t) => go(ss, t, g(acc, h))
         }
-      val s = io.Source.fromFile(f)
+      val s = scala.io.Source.fromFile(f)
       try go(s.getLines, p, z)
       finally s.close
     }
@@ -731,7 +731,7 @@ object GeneralizedStreamTransducers {
      */
     def lines(filename: String): Process[IO,String] =
       resource
-        { IO(io.Source.fromFile(filename)) }
+        { IO(scala.io.Source.fromFile(filename)) }
         { src =>
             lazy val iter = src.getLines // a stateful iterator
             def step = if (iter.hasNext) Some(iter.next) else None

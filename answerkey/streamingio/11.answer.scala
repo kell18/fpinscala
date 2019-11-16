@@ -5,7 +5,7 @@
  */
 def lines(filename: String): Process[IO,String] =
   resource
-    { IO(io.Source.fromFile(filename)) }
+    { IO(scala.io.Source.fromFile(filename)) }
     { src =>
         lazy val iter = src.getLines // a stateful iterator
         def step = if (iter.hasNext) Some(iter.next) else None

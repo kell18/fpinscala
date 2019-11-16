@@ -27,6 +27,11 @@ lazy val exercises = (project in file("exercises"))
       "org.typelevel" %% "cats-core" % "1.6.0",
       "org.typelevel" %% "cats-effect" % "1.2.0",
 
+      "io.nats" % "java-nats-streaming" % "2.2.3",
+      "co.fs2" %% "fs2-core" % "2.0.1",
+      "dev.zio" %% "zio" % "1.0.0-RC15",
+
+      "com.lihaoyi" %% "pprint" % "0.5.6",
 
       "com.github.julien-truffaut" %%  "monocle-core"  % monocleVersion,
       "com.github.julien-truffaut" %%  "monocle-macro" % monocleVersion,

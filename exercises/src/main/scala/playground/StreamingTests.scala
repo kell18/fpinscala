@@ -10,11 +10,11 @@ import scala.language.higherKinds
 
 object Fs2Sink {
 
-  def queueFromAsyncCallback[T, F[_]](registerCalback: (Either[Throwable, T] => Unit))(
+  /*def queueFromAsyncCallback[T, F[_]](registerCalback: (Either[Throwable, T] => Unit))(
     implicit F: Async[F]
   ): Async[F] = {
 
-  }
+  }*/
 
   type Row = List[String]
 

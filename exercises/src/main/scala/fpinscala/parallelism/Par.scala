@@ -43,11 +43,11 @@ object Par {
     def cancel(evenIfRunning: Boolean): Boolean = false
   }
 
-  def parFoldLeft[A, B](as: List[A])(acc: B)(f: (B, A) => B): Par[B] = {
+  def parFoldLeft[A, B](as: List[A])(acc: B)(f: (B, A) => B): Par[B] = ??? /*{
     as.foldLeft(unit(acc)) {
-      case (ac, a) => fork(unit(f(a, ac)))
+      case (ac, a) => fork(unit(f(a, ac))) // .. fix: expand ac
     }
-  }
+  }*/
 
   def paragraphsTotalWords(ps: List[String]): Par[Int] = parFoldLeft(ps)(0) {
     case (total, p) => total + p.split(" ").length
@@ -91,7 +91,7 @@ object Par {
   def map2[A,B,C](a: Par[A], b: Par[B])(f: (A,B) => C)(timeout: Long, units: TimeUnit): Par[C] = // `map2` doesn't evaluate the call to `f` in a separate logical thread, in accord with our design choice of having `fork` be the sole function in the API for controlling parallelism. We can always do `fork(map2(a,b)(f))` if we want the evaluation of `f` to occur in a separate thread.
     (es: ExecutorService) => {
       val (af, millisSpent) = FutureUtils.getWithMillisSpent(a(es))(timeout, units)
-      val bf = b(es).get(millisSpent, TimeUnit.MILLISECONDS)
+      val bf = b(es).get(millisSpent.toLong, TimeUnit.MILLISECONDS)
       // This implementation of `map2` does _not_ respect timeouts, and eagerly waits for the returned futures.
       // This means that even if you have passed in "forked" arguments, using this map2 on them will make them wait.
       // It simply passes the `ExecutorService` on to both `Par` values, waits for the results of the Futures `af` and
@@ -101,17 +101,19 @@ object Par {
       UnitFuture(f(af, bf))
     }
 
-  def asyncF[A, B](f: A => B): A => Par[B] = a => lazyUnit(a)
+  def asyncF[A, B](f: A => B): A => Par[B] = a => lazyUnit(f(a))
 
   def lazyUnit[A](a: A): Par[A] = fork(unit(a))
 
+  // 1 block (even starve)
+  //
   def fork[A](a: => Par[A]): Par[A] = // This is the simplest and most natural implementation of `fork`, but there are some problems with it--for one, the outer `Callable` will block waiting for the "inner" task to complete. Since this blocking occupies a thread in our thread pool, or whatever resource backs the `ExecutorService`, this implies that we're losing out on some potential parallelism. Essentially, we're using two threads when one should suffice. This is a symptom of a more serious problem with the implementation, and we will discuss this later in the chapter.
     es => es.submit(new Callable[A] {
       def call = a(es).get
     })
 
-  def map[A,B](pa: Par[A])(f: A => B): Par[B] =
-    map2(pa, unit(()))((a,_) => f(a))
+  def map[A,B](pa: Par[A])(f: A => B): Par[B] = ???
+    // map2(pa, unit(()))((a,_) => f(a))
 
   def sortPar(parList: Par[List[Int]]) = map(parList)(_.sorted)
 
