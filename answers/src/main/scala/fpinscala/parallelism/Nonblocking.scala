@@ -14,23 +14,6 @@ object Nonblocking {
 
   object Par {
 
-    def choiceN_myFM[A](i: Par[Int])(l: List[Par[A]]):Par[A] = i.flatMap(l(_))
-    def choiceN_my[A](i: Par[Int])(l: List[Par[A]]):Par[A] = es => {
-      new Future[A] {
-        def apply(k: A => Unit): Unit =
-          i(es) { ind => eval(es)(l(ind)(es){k}) }
-      }
-    }
-
-    def flatMap_my[A, B](a: Par[A])(f: A => Par[B]): Par[B] = es => {
-      new Future[B] {
-          def apply(k: B => Unit): Unit = a(es) { a_ =>
-            val b = f(a_)
-            b(es)(k) // may be eval is required here
-          }
-      }
-    }
-
     def run[A](es: ExecutorService)(p: Par[A]): A = {
       val ref = new java.util.concurrent.atomic.AtomicReference[A] // A mutable, threadsafe reference, to use for storing the result
       val latch = new CountDownLatch(1) // A latch which, when decremented, implies that `ref` has the result

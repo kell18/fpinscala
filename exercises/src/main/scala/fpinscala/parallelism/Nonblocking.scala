@@ -131,35 +131,44 @@ object Nonblocking {
           }
       }
 
-    def choiceN[A](p: Par[Int])(ps: List[Par[A]]): Par[A] = ???
+    def map2_zip[A,B,C](p: Par[A], p2: Par[B])(f: (A,B) => C): Par[C] = {
+      p.zip(p2).map(f.tupled)
+    }
 
-    def choiceViaChoiceN[A](a: Par[Boolean])(ifTrue: Par[A], ifFalse: Par[A]): Par[A] =
-      ???
+    def map2_flatMap[A,B,C](p: Par[A], p2: Par[B])(f: (A,B) => C): Par[C] = {
+      flatMap_my(p) { a => p2.map(b => f(a, b)) }
+    }
 
-    def choiceMap[K,V](p: Par[K])(ps: Map[K,Par[V]]): Par[V] =
-      ???
+    def choiceN_myFM[A](i: Par[Int])(l: List[Par[A]]):Par[A] = flatMap_my(i)(l(_))
+    def choiceN_my[A](i: Par[Int])(l: List[Par[A]]):Par[A] = es => {
+      new Future[A] {
+        def apply(k: A => Unit): Unit =
+          i(es) { ind => eval(es)(l(ind)(es){k}) }
+      }
+    }
 
-    // see `Nonblocking.scala` answers file. This function is usually called something else!
-    def chooser[A,B](p: Par[A])(f: A => Par[B]): Par[B] =
-      ???
+    def flatMap_my[A, B](a: Par[A])(f: A => Par[B]): Par[B] = es => {
+      new Future[B] {
+        def apply(k: B => Unit): Unit = a(es) { a_ =>
+          val b = f(a_)
+          b(es)(k) // may be eval is required here
+        }
+      }
+    }
 
-    def flatMap[A,B](p: Par[A])(f: A => Par[B]): Par[B] =
-      ???
+    def join[A](p: Par[Par[A]]): Par[A] = es => new Future[A] {
+      def apply(k: A => Unit): Unit = {
+        eval(es) {
+          p(es) { innerP =>
+            innerP(es)(k)
+          }
+        }
+      }
+    }
 
-    def choiceViaChooser[A](p: Par[Boolean])(f: Par[A], t: Par[A]): Par[A] =
-      ???
+    def joinViaFlatMap[A](a: Par[Par[A]]): Par[A] = flatMap_my(a)(identity)
 
-    def choiceNChooser[A](p: Par[Int])(choices: List[Par[A]]): Par[A] =
-      ???
-
-    def join[A](p: Par[Par[A]]): Par[A] =
-      ???
-
-    def joinViaFlatMap[A](a: Par[Par[A]]): Par[A] =
-      ???
-
-    def flatMapViaJoin[A,B](p: Par[A])(f: A => Par[B]): Par[B] =
-      ???
+    def flatMapViaJoin[A,B](p: Par[A])(f: A => Par[B]): Par[B] = join(p.map(f))
 
     /* Gives us infix syntax for `Par`. */
     implicit def toParOps[A](p: Par[A]): ParOps[A] = new ParOps(p)
