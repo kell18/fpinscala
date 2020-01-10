@@ -43,7 +43,38 @@ trait SGen[+A] {
 
 }
 
-object SomeChecks {
+object SomeChecks extends App {
+
+  val r = Gen2.boolean.sample.run(RNG.Simple(63453))
+  println(r)
+
+  val r1 = Gen2.listOfN(7, Gen2.boolean)
+  println(r1.sample.run(RNG.Simple(4L)))
+
+
+  case class Gen2[A](sample: State[RNG,A])
+
+  object Gen2 {
+    def apply[A](run: RNG => (A, RNG)): Gen2[A] = Gen2[A](State(run))
+
+
+    def unit[A](a: => A): Gen2[A] = Gen2(a -> _)
+
+    def boolean: Gen2[Boolean] = Gen2(RNG.boolean(_))
+
+    def listOfN[A](n: Int, g: Gen2[A]): Gen2[List[A]] = Gen2[List[A]] { firstR: RNG =>
+      val (initI, initR) = g.sample.run(firstR)
+      (0 until n).foldLeft(List(initI) -> initR) {
+        case ((is, r), _) =>
+          val (nextI, nextR) = g.sample.run(r)
+          (nextI :: is, nextR)
+      }
+    }
+
+    // def choose(start: Int, stopExclusive: Int): Gen2[Int] = Gen2(State(rng => rng.nextInt))
+  }
+
+
   // 8.1, 8.2:
   // List.Sum prop:
   //  - sum(l) == sum(shuffle(l))

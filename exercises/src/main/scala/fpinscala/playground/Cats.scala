@@ -1,4 +1,4 @@
-package fpinscala.playground
+/* package fpinscala.playground
 
 import cats.effect.IO
 import cats.effect.ExitCase.Error
@@ -25,3 +25,4 @@ object Cats extends App {
   }*/
 
 }
+*/

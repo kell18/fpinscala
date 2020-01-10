@@ -1,3 +1,4 @@
+/*
 package playground
 
 
@@ -39,3 +40,4 @@ object Fs2Sink {
 object StreamingTests extends App {
 
 }
+*/

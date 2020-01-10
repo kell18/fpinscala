@@ -136,10 +136,10 @@ object Nonblocking {
     }
 
     def map2_flatMap[A,B,C](p: Par[A], p2: Par[B])(f: (A,B) => C): Par[C] = {
-      flatMap_my(p) { a => p2.map(b => f(a, b)) }
+      flatMap(p) { a => p2.map(b => f(a, b)) }
     }
 
-    def choiceN_myFM[A](i: Par[Int])(l: List[Par[A]]):Par[A] = flatMap_my(i)(l(_))
+    def choiceN_myFM[A](i: Par[Int])(l: List[Par[A]]):Par[A] = flatMap(i)(l(_))
     def choiceN_my[A](i: Par[Int])(l: List[Par[A]]):Par[A] = es => {
       new Future[A] {
         def apply(k: A => Unit): Unit =
@@ -147,7 +147,7 @@ object Nonblocking {
       }
     }
 
-    def flatMap_my[A, B](a: Par[A])(f: A => Par[B]): Par[B] = es => {
+    def flatMap[A, B](a: Par[A])(f: A => Par[B]): Par[B] = es => {
       new Future[B] {
         def apply(k: B => Unit): Unit = a(es) { a_ =>
           val b = f(a_)
@@ -166,7 +166,7 @@ object Nonblocking {
       }
     }
 
-    def joinViaFlatMap[A](a: Par[Par[A]]): Par[A] = flatMap_my(a)(identity)
+    def joinViaFlatMap[A](a: Par[Par[A]]): Par[A] = flatMap(a)(identity)
 
     def flatMapViaJoin[A,B](p: Par[A])(f: A => Par[B]): Par[B] = join(p.map(f))
 

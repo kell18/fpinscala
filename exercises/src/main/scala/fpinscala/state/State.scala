@@ -43,6 +43,11 @@ object RNG {
     (if (unbounded < 0) -(unbounded + 1) else unbounded) -> nextRng
   }
 
+  def boolean(r: RNG): (Boolean, RNG) = {
+    val (int, nextR) = r.nextInt
+    (int % 2 == 0, nextR)
+  }
+
   def double(rng: RNG): (Double, RNG) = {
     val (posInt, nextRng) = nonNegativeInt(rng)
     (posInt / Int.MaxValue.toDouble + 1.0) -> nextRng
