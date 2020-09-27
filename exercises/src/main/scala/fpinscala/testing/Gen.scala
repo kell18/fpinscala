@@ -51,12 +51,22 @@ object SomeChecks extends App {
   val r1 = Gen2.listOfN(7, Gen2.boolean)
   println(r1.sample.run(RNG.Simple(4L)))
 
+  val r2 = Gen2.str(10)
+  println(r2.sample.run(RNG.Simple(1000L)))
+
 
   case class Gen2[A](sample: State[RNG,A])
 
   object Gen2 {
     def apply[A](run: RNG => (A, RNG)): Gen2[A] = Gen2[A](State(run))
 
+    def tupleInt(max: Int): Gen2[(Int, Int)] = Gen2 { seed =>
+      val (first, nextRng) = RNG.int(seed)
+      val (second, lastRng) = RNG.int(nextRng)
+      (first -> second) -> lastRng
+    }
+
+    def str(n: Int) = Gen2(listOfN(n, Gen2(RNG.int)).sample.map(_.map(_.toChar).mkString))
 
     def unit[A](a: => A): Gen2[A] = Gen2(a -> _)
 
